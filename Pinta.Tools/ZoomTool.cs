@@ -156,6 +156,11 @@ namespace Pinta.Tools
 			SetCursor (cursorZoom);//restore regular cursor
 		}
 
+		protected override void OnMouseDoubleClick (Gtk.DrawingArea canvas, Gtk.ButtonReleaseEventArgs args, PointD point)
+		{
+			PintaCore.Actions.View.ZoomToWindow.Activate ();
+		}
+
 		Rectangle PointsToRectangle (Cairo.PointD p1, Cairo.PointD p2)
 		{
 			double x, y, w, h;

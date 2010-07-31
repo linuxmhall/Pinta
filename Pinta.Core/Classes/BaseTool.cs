@@ -44,6 +44,7 @@ namespace Pinta.Core
 		protected ToolItem tool_sep;
 		protected ToggleToolButton antialiasing_btn;
 		protected ToggleToolButton alphablending_btn;
+		protected long last_clicked_time = DateTime.Now.Ticks;
 
 		protected BaseTool ()
 		{
@@ -89,6 +90,10 @@ namespace Pinta.Core
 		public void DoMouseUp (DrawingArea canvas, ButtonReleaseEventArgs args, Cairo.PointD point)
 		{
 			OnMouseUp (canvas, args, point);
+		         if (DateTime.Now.Ticks - last_clicked_time <= 2000000) {
+		             OnMouseDoubleClick (canvas, args, point);
+		         }
+		         last_clicked_time = DateTime.Now.Ticks;
 		}
 
 		public void DoActivated ()
@@ -160,7 +165,11 @@ namespace Pinta.Core
 		protected virtual void OnMouseUp (DrawingArea canvas, Gtk.ButtonReleaseEventArgs args, Cairo.PointD point)
 		{
 		}
-		
+
+		protected virtual void OnMouseDoubleClick (DrawingArea canvas, ButtonReleaseEventArgs args, Cairo.PointD point)
+		{
+		}
+
 		protected virtual void OnKeyDown (DrawingArea canvas, Gtk.KeyPressEventArgs args)
 		{
 		}
