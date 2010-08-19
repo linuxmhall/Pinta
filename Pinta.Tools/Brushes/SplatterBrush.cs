@@ -1,6 +1,6 @@
-// 
-// AdjustmentsActions.cs
-//  
+//
+// SplatterBrush.cs
+//
 // Author:
 //       Jonathan Pobst <monkey@jpobst.com>
 // 
@@ -25,33 +25,51 @@
 // THE SOFTWARE.
 
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using Cairo;
 
-namespace Pinta.Core
+using Pinta.Core;
+
+namespace Pinta.Tools.Brushes
 {
-	public class AdjustmentsActions
+	[System.ComponentModel.Composition.Export (typeof (BasePaintBrush))]
+	public class SplatterBrush : PaintBrush
 	{
-		public List<Gtk.Action> Actions { get; private set; }
+		public override string Name {
+			get { return Mono.Unix.Catalog.GetString ("Splatter"); }
+		}
+
+		public override double StrokeAlphaMultiplier {
+			get { return 0.5; }
+		}
 		
-		public AdjustmentsActions ()
+		protected override Gdk.Rectangle OnMouseMove (int x, int y, int lastX, int lastY)
 		{
-			Actions = new List<Gtk.Action> ();
-		}
+			int size = Random.Next (2, 20);
+			Rectangle r = new Rectangle (x + Random.Next (-15, 15), y + Random.Next (-15, 15), size, size);
 
-		#region Initialization
-		public void CreateMainMenu (Gtk.Menu menu)
-		{
-		}
-		#endregion
+			double rx = r.Width / 2;
+			double ry = r.Height / 2;
+			double cx = r.X + rx;
+			double cy = r.Y + ry;
+			double c1 = 0.552285;
 
-		#region Public Methods
-		public void ToggleActionsSensitive (bool sensitive)
-		{
-			foreach (Gtk.Action a in Actions)
-				a.Sensitive = sensitive;
+			G.Save ();
+
+			G.MoveTo (cx + rx, cy);
+
+			G.CurveTo (cx + rx, cy - c1 * ry, cx + c1 * rx, cy - ry, cx, cy - ry);
+			G.CurveTo (cx - c1 * rx, cy - ry, cx - rx, cy - c1 * ry, cx - rx, cy);
+			G.CurveTo (cx - rx, cy + c1 * ry, cx - c1 * rx, cy + ry, cx, cy + ry);
+			G.CurveTo (cx + c1 * rx, cy + ry, cx + rx, cy + c1 * ry, cx + rx, cy);
+
+			G.ClosePath ();
+
+			Rectangle dirty = G.StrokeExtents ();
+
+			G.Fill ();
+			G.Restore ();
+
+			return dirty.ToGdkRectangle ();
 		}
-		#endregion
 	}
 }

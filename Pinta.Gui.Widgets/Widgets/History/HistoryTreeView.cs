@@ -34,16 +34,24 @@ using Pinta.Core;
 
 namespace Pinta.Gui.Widgets
 {
-	public class HistoryTreeView : TreeView
+	public class HistoryTreeView : ScrolledWindow
 	{
+		private TreeView tree;
+		
 		public HistoryTreeView ()
 		{
-			CanFocus = true;
+			CanFocus = false;
+			SetSizeRequest (200, 200);
 
-			Model = PintaCore.History.ListStore;
-			HeadersVisible = false;
-			Selection.Mode = SelectionMode.Single;
-			Selection.SelectFunction = HistoryItemSelected;
+			SetPolicy (PolicyType.Automatic, PolicyType.Automatic);
+
+			tree = new TreeView ();
+
+			tree.HeadersVisible = false;
+			tree.EnableGridLines = TreeViewGridLines.None;
+			tree.EnableTreeLines = false;
+			tree.Selection.Mode = SelectionMode.Single;
+			tree.Selection.SelectFunction = HistoryItemSelected;
 
 			Gtk.TreeViewColumn icon_column = new Gtk.TreeViewColumn ();
 			Gtk.CellRendererPixbuf icon_cell = new Gtk.CellRendererPixbuf ();
@@ -56,12 +64,27 @@ namespace Pinta.Gui.Widgets
 			text_column.SetCellDataFunc (text_cell, new Gtk.TreeCellDataFunc (HistoryRenderText));
 			icon_column.SetCellDataFunc (icon_cell, new Gtk.TreeCellDataFunc (HistoryRenderIcon));
 
-			AppendColumn (icon_column);
-			AppendColumn (text_column);
+			tree.AppendColumn (icon_column);
+			tree.AppendColumn (text_column);
 
+			PintaCore.Workspace.ActiveDocumentChanged += Workspace_ActiveDocumentChanged;
+			
 			PintaCore.History.HistoryItemAdded += new EventHandler<HistoryItemAddedEventArgs> (OnHistoryItemsChanged);
 			PintaCore.History.ActionUndone += new EventHandler (OnHistoryItemsChanged);
 			PintaCore.History.ActionRedone += new EventHandler (OnHistoryItemsChanged);
+
+			Add (tree);
+			ShowAll ();
+		}
+
+		private void Workspace_ActiveDocumentChanged (object sender, EventArgs e)
+		{
+			if (PintaCore.Workspace.HasOpenDocuments)
+				tree.Model = PintaCore.Workspace.ActiveWorkspace.History.ListStore;
+			else
+				tree.Model = null;
+				
+			OnHistoryItemsChanged (this, EventArgs.Empty);
 		}
 
 		#region History
@@ -91,7 +114,6 @@ namespace Pinta.Gui.Widgets
 				(cell as Gtk.CellRendererText).Foreground = "gray";
 				(cell as Gtk.CellRendererText).Text = item.Text;
 			}
-
 		}
 
 		private void HistoryRenderIcon (Gtk.TreeViewColumn column, Gtk.CellRenderer cell, Gtk.TreeModel model, Gtk.TreeIter iter)
@@ -102,11 +124,10 @@ namespace Pinta.Gui.Widgets
 
 		private void OnHistoryItemsChanged (object o, EventArgs args)
 		{
-			if (PintaCore.History.Current != null) {
-				Selection.SelectIter (PintaCore.History.Current.Id);
-				ScrollToCell (Model.GetPath (PintaCore.History.Current.Id), Columns[1], true, (float)0.9, 0);
+			if (tree.Model != null && PintaCore.History.Current != null) {
+				tree.Selection.SelectIter (PintaCore.History.Current.Id);
+				tree.ScrollToCell (tree.Model.GetPath (PintaCore.History.Current.Id), tree.Columns[1], true, (float)0.9, 0);
 			}
-
 		}
 		#endregion
 	}

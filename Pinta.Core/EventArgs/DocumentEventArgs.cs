@@ -1,5 +1,5 @@
-// 
-// UnimplementedTools.cs
+﻿// 
+// DocumentEventArgs.cs
 //  
 // Author:
 //       Jonathan Pobst <monkey@jpobst.com>
@@ -25,27 +25,16 @@
 // THE SOFTWARE.
 
 using System;
-using Pinta.Core;
-using Mono.Unix;
 
-namespace Pinta.Tools
+namespace Pinta.Core
 {
-	// This is just to get them to show up in the toolbox
-	// until they get implemented
-
-	[System.ComponentModel.Composition.Export (typeof (BaseTool))]
-	public class CloneStampTool : BaseTool
+	public class DocumentEventArgs : EventArgs
 	{
-		public override string Name {
-			get { return Catalog.GetString ("Clone Stamp"); }
+		public Document Document { get; set; }
+
+		public DocumentEventArgs (Document document)
+		{
+			Document = document;
 		}
-		public override string Icon {
-			get { return "Tools.CloneStamp.png"; }
-		}
-		public override bool Enabled {
-			get { return false; }
-		}
-		public override int Priority { get { return 33; } }
 	}
-			
 }
